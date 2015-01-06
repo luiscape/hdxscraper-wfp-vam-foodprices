@@ -1,0 +1,5 @@
+.Rhistory
+.Rdata
+*.sqlite
+venv/*
+venv/**
