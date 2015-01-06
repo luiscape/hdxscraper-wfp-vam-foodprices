@@ -4,6 +4,6 @@ This repository contains a simple collector for the WFP VAM's food prices databa
 
 # Dependencies
 This scraper was built in `R` and depends on the following packages:
- - XML
+ - rjson
  - RCurl
  - sqldf
