@@ -74,12 +74,13 @@ collectWFPVam <- function(verbose = F) {
   return(out)
 }
 
-runScraper <- function(csv = TRUE, db = TRUE, df = FALSE) {
+runScraper <- function(csv = FALSE, db = TRUE, df = FALSE) {
   data <- collectWFPVam()
   if (csv) write.csv(data, paste0(onSw(),'data/wfp_vam_data.csv'), row.names = F)
-  if (db) writeTable(data, 'wfp_vam_data', 'scraperwiki')
+  if (db) writeTable(data, 'wfp_vam_data', 'scraperwiki', overwrite = T)
   if (df) return(data)
 }
+
 
 # Changing the status of SW.
 tryCatch(runScraper(),
