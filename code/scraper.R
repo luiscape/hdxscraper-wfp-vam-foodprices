@@ -29,7 +29,7 @@ collectWFPVam <- function(verbose = F) {
   
   # config
   base_url = 'http://reporting.vam.wfp.org/JSON/GetMPI.aspx?iso3='
-  country_list <- read.csv('data/country_list.csv')
+  country_list <- read.csv(paste0(onSw(),'data/country_list.csv'))
     
   # Iterating over the list of available countries. 
   total = nrow(country_list)
