@@ -65,7 +65,7 @@ collectWFPVam <- function(verbose = F) {
   }
   
   # Converting dates to date objects.
-  out$Date <- as.POSIXct(out$Date / 1000, origin="1970-01-01", tz="GMT")
+  out$Date <- as.character(as.POSIXct(out$Date / 1000, origin="1970-01-01", tz="GMT"))
 
   # results
   cat('-------------------------------\n')
