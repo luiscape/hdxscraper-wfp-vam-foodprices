@@ -2,7 +2,7 @@
 # datastores in CKAN / HDX.
 
 # path to download
-PATH = 'data/temp_data.csv'
+PATH = 'tool/data/temp_data.csv'
 
 # dependencies
 # import offset
@@ -90,6 +90,7 @@ def checkHash(filename, first_run, resource_id):
 
     else:
         old_hash = scraperwiki.sqlite.get_var(resource_id)
+        scraperwiki.sqlite.save_var(resource_id, new_hash)
         new_data = old_hash != new_hash
 
     # returning a boolean
@@ -157,7 +158,6 @@ def runEverything(p):
         print "Reading resource id: " + resource_id
         downloadResource(p, resource_id, apikey)
         updateDatastore(p, resource_id, resource, apikey)
-        # scraperwiki.sqlite.save_var(resource_id, new_hash)  # if successful, save new_hash
     print '-------------------------------------'
     print 'Done.'
     print '-------------------------------------'
