@@ -2,7 +2,7 @@
 # datastores in CKAN / HDX.
 
 # path to download
-PATH = 'tool/data/temp_data.csv'
+PATH = 'data/temp_data.csv'
 
 # dependencies
 # import offset
@@ -40,8 +40,8 @@ def getResources(p):
                   { "id": "Market_Name", "type": "text" },
                   { "id": "Commodity", "type": "text" },
                   { "id": "Unit", "type": "text" },
-                  { "id": "Date", "type": "date" },
-                  { "id": "Value", "type": "float" }
+                  { "id": "Date", "type": "text" },
+                  { "id": "Value", "type": "text" }
                 ]
             },
         }
@@ -52,17 +52,23 @@ def getResources(p):
 # Function to download a resource from CKAN.
 def downloadResource(filename, resource_id, apikey):
 
-    # querying
+    # Querying
     url = 'https://data.hdx.rwlabs.org/api/action/resource_show?id=' + resource_id
     headers = { 'Authorization': apikey }
     r = requests.get(url, headers=headers)
     doc = r.json()
     fileUrl = doc["result"]["url"]
 
-    # downloading
+    # Downloading
     try:
-        urllib.urlretrieve(fileUrl, filename)
-    except:
+        r = requests.get(fileUrl, stream=True, headers=headers)
+        with open(filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk: # filter out keep-alive new chunks
+                    f.write(chunk)
+                    f.flush()
+    except Exception as e:
+        print e
         print 'There was an error downlaoding the file.'
 
 # Function that checks for old SHA hash
@@ -90,7 +96,7 @@ def checkHash(filename, first_run, resource_id):
     return new_data
 
 
-def updateDatastore(filename, resource_id, resource):
+def updateDatastore(filename, resource_id, resource, apikey):
 
     # Checking if there is new data
     update_data = checkHash(filename=filename,
@@ -102,14 +108,15 @@ def updateDatastore(filename, resource_id, resource):
 
     print "DataStore Status: New data. Updating datastore."
 
-    def upload_data_to_datastore(ckan_resource_id, resource):
+    def upload_data_to_datastore(ckan_resource_id, resource, apikey):
         # let's delete any existing data before we upload again
         try:
-            ckan.action.datastore_delete(resource_id=ckan_resource_id, force=True)
+            ckan.action.datastore_delete(resource_id=ckan_resource_id, force=True, apikey=apikey)
         except:
             pass
 
         ckan.action.datastore_create(
+                apikey=apikey,
                 resource_id=ckan_resource_id,
                 force=True,
                 fields=resource['schema']['fields'],
@@ -117,8 +124,8 @@ def updateDatastore(filename, resource_id, resource):
 
         reader = csv.DictReader(open(resource['path']))
         rows = [ row for row in reader ]
-        chunksize = 10000
-        offset = 0
+        chunksize = 1000
+        offset = 1000
         print('Uploading data for file: %s' % resource['path'])
         while offset < len(rows):
             rowset = rows[offset:offset+chunksize]
@@ -128,13 +135,14 @@ def updateDatastore(filename, resource_id, resource):
                     method='insert',
                     records=rowset)
             offset += chunksize
-            print('Update successful: %s' % offset)
+            complete = str(float(offset)/len(rows) * 100)[:3] + "%"
+            print('Update successful: %s completed' % complete)
 
     # running the upload function
-    upload_data_to_datastore(resource_id, resource)
+    upload_data_to_datastore(resource_id, resource, apikey)
 
     # updating the UI timestamp
-    updateTimestamp(resource_id, apikey)
+    # updateTimestamp(resource_id, apikey)
 
 # wrapper call for all functions
 def runEverything(p):
@@ -148,8 +156,8 @@ def runEverything(p):
         resource_id = resource['resource_id']  # getting the resource_id
         print "Reading resource id: " + resource_id
         downloadResource(p, resource_id, apikey)
-        updateDatastore(p, resource_id, resource)
-        scraperwiki.sqlite.save_var(resource_id, new_hash)  # if successful, save new_hash
+        updateDatastore(p, resource_id, resource, apikey)
+        # scraperwiki.sqlite.save_var(resource_id, new_hash)  # if successful, save new_hash
     print '-------------------------------------'
     print 'Done.'
     print '-------------------------------------'
