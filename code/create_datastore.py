@@ -2,7 +2,7 @@
 # datastores in CKAN / HDX.
 
 # path to download
-PATH = 'tool/data/temp_data.csv'
+PATH = 'data/temp_data.csv'
 
 # dependencies
 # import offset
@@ -44,6 +44,7 @@ def getResources(p):
                   { "id": "Value", "type": "text" }
                 ]
             },
+            'indexes':["ISO3", "Market_Name"]
         }
     ]
 
@@ -121,12 +122,13 @@ def updateDatastore(filename, resource_id, resource, apikey):
                 resource_id=ckan_resource_id,
                 force=True,
                 fields=resource['schema']['fields'],
-                primary_key=resource['schema'].get('primary_key'))
+                primary_key=resource['schema'].get('primary_key'),
+                indexes=resource['indexes'])
 
         reader = csv.DictReader(open(resource['path']))
         rows = [ row for row in reader ]
         chunksize = 1000
-        offset = 1000
+        offset = 0
         print('Uploading data for file: %s' % resource['path'])
         while offset < len(rows):
             rowset = rows[offset:offset+chunksize]
