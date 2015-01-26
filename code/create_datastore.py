@@ -41,7 +41,7 @@ def getResources(p):
                   { "id": "Commodity", "type": "text" },
                   { "id": "Unit", "type": "text" },
                   { "id": "Date", "type": "date" },
-                  { "id": "Date", "type": "float" }
+                  { "id": "Value", "type": "float" }
                 ]
             },
         }
